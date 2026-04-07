@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>주요부서 업무 현황 보고</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: '맑은 고딕', Malgun Gothic, sans-serif; background: #f0f4f8; min-height: 100vh; }
+  .header { background: #1a3a6b; color: white; padding: 18px 24px; display: flex; align-items: center; justify-content: space-between; }
+  .header-title { font-size: 18px; font-weight: 700; }
+  .header-period { font-size: 13px; opacity: 0.8; margin-top: 4px; }
+  .btn { padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600; transition: 0.2s; }
+  .btn-white { background: white; color: #1a3a6b; }
+  .btn-white:hover { background: #e8eef7; }
+  .btn-primary { background: #2563eb; color: white; }
+  .btn-primary:hover { background: #1d4ed8; }
+  .btn-success { background: #16a34a; color: white; }
+  .btn-success:hover { background: #15803d; }
+  .btn-sm { padding: 5px 12px; font-size: 12px; }
+  .tabs { background: white; border-bottom: 2px solid #e5e7eb; display: flex; padding: 0 24px; }
+  .tab { padding: 14px 20px; cursor: pointer; font-size: 14px; font-weight: 600; color: #6b7280; border-bottom: 3px solid transparent; margin-bottom: -2px; transition: 0.2s; }
+  .tab.active { color: #1a3a6b; border-bottom-color: #1a3a6b; }
+  .tab:hover:not(.active) { color: #374151; }
+  .container { max-width: 1000px; margin: 0 auto; padding: 24px; }
+  .team-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; margin-top: 8px; }
+  .team-card { background: white; border: 2px solid #e5e7eb; border-radius: 10px; padding: 16px; cursor: pointer; transition: 0.2s; }
+  .team-card:hover { border-color: #2563eb; background: #eff6ff; }
+  .team-card.selected { border-color: #1a3a6b; background: #eff6ff; }
+  .team-card .dept { font-size: 11px; color: #6b7280; margin-bottom: 4px; }
+  .team-card .name { font-size: 14px; font-weight: 700; color: #1f2937; }
+  .team-card .status { font-size: 11px; margin-top: 6px; padding: 2px 8px; border-radius: 20px; display: inline-block; }
+  .status-done { background: #dcfce7; color: #16a34a; }
+  .status-none { background: #f3f4f6; color: #9ca3af; }
+  .form-card { background: white; border-radius: 12px; padding: 24px; margin-bottom: 20px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+  .form-card h3 { font-size: 15px; font-weight: 700; color: #1a3a6b; margin-bottom: 16px; padding-bottom: 10px; border-bottom: 2px solid #e5e7eb; }
+  .section-badge { background: #1a3a6b; color: white; font-size: 11px; padding: 2px 8px; border-radius: 4px; margin-left: 8px; }
+  .section-badge.self { background: #059669; }
+  label { display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px; margin-top: 14px; }
+  label:first-child { margin-top: 0; }
+  input[type=text], textarea { width: 100%; padding: 10px 12px; border: 1.5px solid #d1d5db; border-radius: 8px; font-size: 13px; font-family: inherit; transition: 0.2s; }
+  input[type=text]:focus, textarea:focus { outline: none; border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
+  textarea { resize: vertical; min-height: 80px; }
+  .period-row { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 8px; }
+  .period-row span { text-align: center; font-size: 13px; color: #6b7280; }
+  .task-item { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 14px; margin-bottom: 10px; }
+  .task-item-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+  .task-item-header span { font-size: 12px; font-weight: 700; color: #6b7280; }
+  .btn-del { background: #fee2e2; color: #dc2626; border: none; border-radius: 4px; padding: 3px 8px; font-size: 11px; cursor: pointer; }
+  .btn-add { background: #eff6ff; color: #2563eb; border: 1.5px dashed #93c5fd; border-radius: 8px; padding: 10px; width: 100%; font-size: 13px; font-weight: 600; cursor: pointer; margin-top: 8px; transition: 0.2s; }
+  .btn-add:hover { background: #dbeafe; }
+  .form-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
+  .report-table { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+  .report-header { background: #1a3a6b; color: white; padding: 16px 24px; display: flex; justify-content: space-between; align-items: center; }
+  .report-header h2 { font-size: 15px; font-weight: 700; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th { background: #f1f5f9; color: #374151; font-weight: 700; padding: 12px 16px; text-align: left; border-bottom: 2px solid #e5e7eb; }
+  td { padding: 14px 16px; border-bottom: 1px solid #f1f5f9; vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: #fafafa; }
+  .task-list { list-style: none; }
+  .task-list li { margin-bottom: 8px; }
+  .task-title-text { font-weight: 700; color: #1f2937; }
+  .task-detail { color: #6b7280; font-size: 12px; margin-top: 2px; white-space: pre-wrap; }
+  .empty-cell { color: #d1d5db; font-size: 12px; }
+  .report-note { color: #374151; font-size: 13px; white-space: pre-wrap; }
+  .filter-bar { background: white; border-radius: 10px; padding: 14px 20px; margin-bottom: 16px; display: flex; gap: 10px; align-items: center; box-shadow: 0 1px 4px rgba(0,0,0,0.06); flex-wrap: wrap; }
+  .section-title { font-size: 16px; font-weight: 700; color: #1f2937; margin-bottom: 16px; }
+  .no-data { text-align: center; padding: 48px; color: #9ca3af; }
+  .loading { text-align: center; padding: 48px; color: #9ca3af; }
+  .toast { position: fixed; bottom: 24px; right: 24px; color: white; padding: 12px 20px; border-radius: 8px; font-size: 13px; z-index: 999; animation: slideup 0.3s ease; }
+  .toast-ok { background: #1f2937; }
+  .toast-err { background: #dc2626; }
+  @keyframes slideup { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+  .spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid #fff; border-top-color: transparent; border-radius: 50%; animation: spin 0.6s linear infinite; vertical-align: middle; margin-right: 6px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @media print {
+    .tabs, .filter-bar, .form-actions, .btn, .header { display: none !important; }
+    .report-table { box-shadow: none; }
+    body { background: white; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <div class="header-title">📋 주요부서 업무 현황 보고</div>
+    <div class="header-period" id="headerPeriod">기간 미설정</div>
+  </div>
+  <div style="display:flex;gap:8px;">
+    <button class="btn btn-white" onclick="showTab('input')">✏️ 입력</button>
+    <button class="btn btn-white" onclick="showTab('report')">📊 통합보고</button>
+  </div>
+</div>
+
+<div class="tabs">
+  <div class="tab active" id="tab-input" onclick="showTab('input')">✏️ 업무 입력</div>
+  <div class="tab" id="tab-report" onclick="showTab('report')">📊 통합 보고서</div>
+</div>
+
+<!-- 입력 탭 -->
+<div id="page-input" class="container">
+  <div class="form-card" style="margin-bottom:20px;">
+    <h3>📅 보고 기간</h3>
+    <div class="period-row">
+      <input type="text" id="periodStart" placeholder="예: 2026.03.30.(월)">
+      <span>~</span>
+      <input type="text" id="periodEnd" placeholder="예: 2026.04.10.(금)">
+    </div>
+    <button class="btn btn-primary" style="margin-top:12px;" id="periodBtn" onclick="savePeriod()">기간 저장</button>
+  </div>
+
+  <div class="section-title">팀/실 선택</div>
+  <div class="team-grid" id="teamGrid"><div class="loading">⏳ 불러오는 중...</div></div>
+
+  <div id="inputForm" style="display:none; margin-top:24px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+      <div class="section-title" id="formTitle" style="margin:0;"></div>
+      <button class="btn btn-sm" style="background:#f3f4f6;color:#374151;" onclick="deselectTeam()">← 팀 변경</button>
+    </div>
+    <div class="form-card">
+      <h3>◉ 총장 지시 업무 <span class="section-badge">지시</span></h3>
+      <div id="presidentTasks"></div>
+      <button class="btn-add" onclick="addTask('president')">+ 업무 추가</button>
+    </div>
+    <div class="form-card">
+      <h3>◉ 자체 추진 업무 <span class="section-badge self">자체</span></h3>
+      <div id="selfTasks"></div>
+      <button class="btn-add" onclick="addTask('self')">+ 업무 추가</button>
+    </div>
+    <div class="form-card">
+      <h3>📌 보고사항 <span style="font-size:11px;color:#9ca3af;font-weight:400;">(선택)</span></h3>
+      <textarea id="reportNote" placeholder="보고사항이 있을 시 입력 (없으면 비워두세요)"></textarea>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-success" id="saveBtn" onclick="saveReport()">💾 저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- 통합 보고서 탭 -->
+<div id="page-report" class="container" style="display:none;">
+  <div class="filter-bar">
+    <label style="margin:0;">🔍 기간:</label>
+    <span id="reportPeriodLabel" style="font-weight:700;color:#1a3a6b;">-</span>
+    <div style="margin-left:auto;display:flex;gap:8px;">
+      <button class="btn btn-sm btn-primary" onclick="loadReport()">🔄 새로고침</button>
+      <button class="btn btn-sm" style="background:#f3f4f6;" onclick="window.print()">🖨️ 인쇄</button>
+    </div>
+  </div>
+  <div class="report-table">
+    <div class="report-header">
+      <h2>주요부서 팀/실 업무 현황 보고</h2>
+      <span id="reportPeriodHeader" style="font-size:13px;opacity:0.8;"></span>
+    </div>
+    <div id="reportBody"><div class="loading">⏳ 데이터 불러오는 중...</div></div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, doc, setDoc, getDoc, getDocs, collection }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDGK8WEACd6jX8DYIphfWkFGsUdd6tuipM",
+  authDomain: "report2026-1f072.firebaseapp.com",
+  projectId: "report2026-1f072",
+  storageBucket: "report2026-1f072.firebasestorage.app",
+  messagingSenderId: "532622243453",
+  appId: "1:532622243453:web:a24884b6570baac6dd6314"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+const TEAMS = [
+  { dept: "대외협력처", name: "홍보실" },
+  { dept: "건학120주년 기념사업단", name: "기념사업 추진팀" },
+  { dept: "기획처", name: "기획예산실" },
+  { dept: "총무처", name: "총무인사팀" },
+  { dept: "관리처", name: "시설안전팀" },
+  { dept: "관리처", name: "로터스관건설팀" },
+  { dept: "국제처", name: "글로벌교류팀" },
+  { dept: "국제처", name: "글로벌학생팀" },
+  { dept: "대학원", name: "대학원실" },
+  { dept: "교무처", name: "교육기획팀" },
+  { dept: "교원인사처", name: "교원인사실" },
+  { dept: "연구기획본부", name: "연구기획팀" },
+];
+
+let selectedTeam = null;
+let submittedTeams = new Set();
+let period = { start: '', end: '' };
+
+function teamKey(t) { return `${t.dept}_${t.name}`.replace(/\s/g, '_'); }
+
+function esc(s) {
+  return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function showToast(msg, isErr = false) {
+  const el = document.createElement('div');
+  el.className = 'toast ' + (isErr ? 'toast-err' : 'toast-ok');
+  el.textContent = msg;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 3000);
+}
+
+function setLoading(btnId, loading) {
+  const btn = document.getElementById(btnId);
+  if (!btn) return;
+  if (loading) {
+    btn.disabled = true;
+    btn.innerHTML = `<span class="spinner"></span>저장 중...`;
+  } else {
+    btn.disabled = false;
+    btn.innerHTML = btnId === 'saveBtn' ? '💾 저장' : '기간 저장';
+  }
+}
+
+function updatePeriodDisplay() {
+  const txt = (period.start && period.end) ? `${period.start} ~ ${period.end}` : "기간 미설정";
+  document.getElementById("headerPeriod").textContent = txt;
+  document.getElementById("reportPeriodLabel").textContent = txt;
+  document.getElementById("reportPeriodHeader").textContent = txt;
+}
+
+// 기간 로드
+async function loadPeriod() {
+  try {
+    const snap = await getDoc(doc(db, "config", "period"));
+    if (snap.exists()) {
+      period = snap.data();
+      document.getElementById("periodStart").value = period.start || '';
+      document.getElementById("periodEnd").value = period.end || '';
+      updatePeriodDisplay();
+    }
+  } catch(e) { console.warn("기간 로드 실패:", e.message); }
+}
+
+window.savePeriod = async function() {
+  setLoading('periodBtn', true);
+  period.start = document.getElementById("periodStart").value.trim();
+  period.end = document.getElementById("periodEnd").value.trim();
+  try {
+    await setDoc(doc(db, "config", "period"), period);
+    updatePeriodDisplay();
+    showToast("📅 기간이 저장되었습니다.");
+  } catch(e) {
+    showToast("❌ 저장 실패: " + e.message, true);
+  }
+  setLoading('periodBtn', false);
+}
+
+// 제출 현황 로드
+async function loadSubmitted() {
+  try {
+    const snap = await getDocs(collection(db, "reports"));
+    submittedTeams = new Set();
+    snap.forEach(d => submittedTeams.add(d.id));
+  } catch(e) { console.warn("현황 로드 실패:", e.message); }
+  renderTeamGrid();
+}
+
+function renderTeamGrid() {
+  const grid = document.getElementById("teamGrid");
+  grid.innerHTML = TEAMS.map((t, i) => {
+    const done = submittedTeams.has(teamKey(t));
+    const sel = selectedTeam === i ? 'selected' : '';
+    return `<div class="team-card ${sel}" onclick="selectTeam(${i})">
+      <div class="dept">${esc(t.dept)}</div>
+      <div class="name">${esc(t.name)}</div>
+      <span class="status ${done ? 'status-done' : 'status-none'}">${done ? '✅ 제출완료' : '미제출'}</span>
+    </div>`;
+  }).join('');
+}
+
+window.selectTeam = async function(i) {
+  selectedTeam = i;
+  const t = TEAMS[i];
+  document.getElementById("formTitle").textContent = `✏️ ${t.dept} ${t.name}`;
+  document.getElementById("inputForm").style.display = "block";
+  document.getElementById("inputForm").scrollIntoView({ behavior: 'smooth' });
+  renderTeamGrid();
+
+  // 기존 데이터 로드
+  let d = {};
+  try {
+    const snap = await getDoc(doc(db, "reports", teamKey(t)));
+    if (snap.exists()) d = snap.data();
+  } catch(e) { console.warn("데이터 로드 실패:", e.message); }
+
+  renderTasks('president', d.presidentTasks || []);
+  renderTasks('self', d.selfTasks || []);
+  document.getElementById("reportNote").value = d.reportNote || '';
+}
+
+window.deselectTeam = function() {
+  selectedTeam = null;
+  document.getElementById("inputForm").style.display = "none";
+  renderTeamGrid();
+}
+
+function renderTasks(type, tasks) {
+  const container = document.getElementById(`${type}Tasks`);
+  container.innerHTML = '';
+  if (!tasks.length) { addTask(type); return; }
+  tasks.forEach(task => addTask(type, task.title, task.detail));
+}
+
+window.addTask = function(type, title = '', detail = '') {
+  const container = document.getElementById(`${type}Tasks`);
+  const id = `t_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+  const num = container.children.length + 1;
+  const div = document.createElement('div');
+  div.className = 'task-item';
+  div.id = id;
+  div.innerHTML = `
+    <div class="task-item-header">
+      <span>▪ 업무 ${num}</span>
+      <button class="btn-del" onclick="document.getElementById('${id}').remove()">삭제</button>
+    </div>
+    <label>업무명</label>
+    <input type="text" class="task-title-input" placeholder="예: MetaPlan120 진행상황 점검" value="${esc(title)}">
+    <label>세부내용 / 일정</label>
+    <textarea class="task-detail-input" placeholder="일정 및 세부내용 기술">${esc(detail)}</textarea>
+  `;
+  container.appendChild(div);
+}
+
+window.saveReport = async function() {
+  if (selectedTeam === null) return;
+  const t = TEAMS[selectedTeam];
+  const collectTasks = (type) =>
+    [...document.getElementById(`${type}Tasks`).querySelectorAll('.task-item')]
+      .map(el => ({
+        title: el.querySelector('.task-title-input').value.trim(),
+        detail: el.querySelector('.task-detail-input').value.trim()
+      })).filter(x => x.title);
+
+  const data = {
+    dept: t.dept,
+    teamName: t.name,
+    presidentTasks: collectTasks('president'),
+    selfTasks: collectTasks('self'),
+    reportNote: document.getElementById("reportNote").value.trim(),
+    updatedAt: new Date().toISOString()
+  };
+
+  setLoading('saveBtn', true);
+  try {
+    await setDoc(doc(db, "reports", teamKey(t)), data);
+    submittedTeams.add(teamKey(t));
+    renderTeamGrid();
+    showToast("✅ 저장되었습니다!");
+  } catch(e) {
+    showToast("❌ 저장 실패: " + e.message, true);
+  }
+  setLoading('saveBtn', false);
+}
+
+window.loadReport = async function() {
+  const body = document.getElementById("reportBody");
+  body.innerHTML = '<div class="loading">⏳ 데이터 불러오는 중...</div>';
+  try {
+    const snap = await getDocs(collection(db, "reports"));
+    if (snap.empty) {
+      body.innerHTML = '<div class="no-data">📭 아직 제출된 보고가 없습니다.</div>';
+      return;
+    }
+    const dataMap = {};
+    snap.forEach(d => { dataMap[d.id] = d.data(); });
+
+    const renderTasks = (tasks) => {
+      if (!tasks || !tasks.length) return '<span class="empty-cell">-</span>';
+      return '<ul class="task-list">' + tasks.map(task =>
+        `<li><div class="task-title-text">▪ ${esc(task.title)}</div>${task.detail ? `<div class="task-detail">${esc(task.detail)}</div>` : ''}</li>`
+      ).join('') + '</ul>';
+    };
+
+    let html = `<table><thead><tr>
+      <th style="width:130px;">부서명</th>
+      <th style="width:28%;">◉ 총장 지시 업무</th>
+      <th style="width:28%;">◉ 자체 추진 업무</th>
+      <th>보고사항</th>
+    </tr></thead><tbody>`;
+
+    TEAMS.forEach(t => {
+      const d = dataMap[teamKey(t)];
+      if (!d) return;
+      html += `<tr>
+        <td><div style="font-size:11px;color:#6b7280;">${esc(d.dept)}</div><div style="font-weight:700;">${esc(d.teamName)}</div></td>
+        <td>${renderTasks(d.presidentTasks)}</td>
+        <td>${renderTasks(d.selfTasks)}</td>
+        <td>${d.reportNote ? `<div class="report-note">${esc(d.reportNote)}</div>` : '<span class="empty-cell">-</span>'}</td>
+      </tr>`;
+    });
+
+    html += '</tbody></table>';
+    body.innerHTML = html;
+  } catch(e) {
+    body.innerHTML = `<div class="no-data">❌ 오류: ${esc(e.message)}<br><small>Firestore 규칙 또는 네트워크를 확인하세요.</small></div>`;
+  }
+}
+
+window.showTab = function(tab) {
+  document.getElementById('page-input').style.display = tab === 'input' ? 'block' : 'none';
+  document.getElementById('page-report').style.display = tab === 'report' ? 'block' : 'none';
+  document.getElementById('tab-input').className = 'tab' + (tab === 'input' ? ' active' : '');
+  document.getElementById('tab-report').className = 'tab' + (tab === 'report' ? ' active' : '');
+  if (tab === 'report') loadReport();
+}
+
+// 초기화
+loadPeriod();
+loadSubmitted();
+</script>
+</body>
+</html>
